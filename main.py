@@ -1,6 +1,8 @@
-import tensorflow as tf
+from ast import Load
 
-# Load MNIST dataset
+# import tensorflow as tf
+
+# # Load MNIST dataset
 # mnist = tf.keras.datasets.mnist
 # (x_train, y_train), (x_test, y_test) = mnist.load_data()
 
@@ -25,7 +27,7 @@ import tensorflow as tf
 # )
 
 # # Train model
-# model.fit(x_train, y_train, epochs=3)
+# model.fit(x_train, y_train, epochs=25wait mnist)
 
 # # Evaluate model
 # loss, accuracy = model.evaluate(x_test, y_test)
@@ -33,8 +35,8 @@ import tensorflow as tf
 # print("\nTest Loss:", loss)
 # print("Test Accuracy:", accuracy)
 
-# Save model
-#model.save("epic_num_reader.keras")
+# # Save model
+# model.save("epic_num_reader.keras")
 
 # print("\nModel loaded successfully from epic_num_reader.keras")
 
@@ -47,59 +49,40 @@ import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
 
-# Load saved model
 model = tf.keras.models.load_model("epic_num_reader.keras")
 
 print("Model loaded successfully!\n")
 
-# Check current directory
-print("Current Working Directory:", os.getcwd())
-print()
+for i in range(1, 10):
 
-# Process all PNG files in the digits folder
-for filename in os.listdir("digits"):
-    if filename.lower().endswith(".png"):
+    filename = f"Digit{i}.png"
+    path = os.path.join("digits", filename)
 
-        path = os.path.join("digits", filename)
+    if not os.path.isfile(path):
+        print(f"{filename} not found")
+        continue
 
-        try:
-            # Read image in grayscale
-            img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+    img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
 
-            if img is None:
-                print(f"Could not read {filename}")
-                continue
+    img = cv2.resize(img, (28, 28))
 
-            # Resize to MNIST size
-            img = cv2.resize(img, (28, 28))
+    # Only invert if your digit is black on white
+    img = np.invert(img)
 
-            # Invert colors (MNIST uses white digit on black background)
-            img = np.invert(img)
+    img = img / 255.0
 
-            # Normalize
-            img = img / 255.0
+    img_input = np.array([img])
 
-            # Add batch dimension
-            img_input = np.array([img])
+    prediction = model.predict(img_input, verbose=0)
 
-            # Predict
-            prediction = model.predict(img_input, verbose=0)
-            predicted_digit = np.argmax(prediction)
-            confidence = np.max(prediction) * 100
+    predicted_digit = np.argmax(prediction)
+    confidence = np.max(prediction) * 100
 
-            print(
-                f"{filename} -> Predicted: {predicted_digit} "
-                f"({confidence:.2f}% confidence)"
-            )
+    print(
+        f"Actual: {i} | Predicted: {predicted_digit} | Confidence: {confidence:.2f}%"
+    )
 
-            # Show image
-            plt.imshow(img, cmap=plt.cm.binary)
-            plt.title(
-                f"{filename}\nPrediction: {predicted_digit} "
-                f"({confidence:.2f}%)"
-            )
-            plt.axis("off")
-            plt.show()
-
-        except Exception as e:
-            print(f"Error processing {filename}: {e}")
+    plt.imshow(img, cmap="binary")
+    plt.title(f"Actual: {i}  Predicted: {predicted_digit}")
+    plt.axis("off")
+    plt.show()
